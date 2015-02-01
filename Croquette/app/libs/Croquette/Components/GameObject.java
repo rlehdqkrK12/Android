@@ -1,16 +1,14 @@
 package Components;
 
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 
-import Rest.*;
 import Social.Message;
 import Social.SocialMemder;
 
-class GameObject extends SocialMemder {
+public class GameObject extends SocialMemder {
     public ArrayList<ComponentBase> components;
-    public GameObject() { type = 1; components = new ArrayList<ComponentBase>(); }
+    public GameObject() { components = new ArrayList<ComponentBase>(); }
     public static GameObject creat() { return new GameObject(); }
     public ComponentBase insertComponent(Class<? extends ComponentBase> _class) {
         for (int i = 0; i < components.size(); i++) {
@@ -48,24 +46,27 @@ class GameObject extends SocialMemder {
     }
 
     @Override
-    public void upDate() { }
+    public void upDate() {
+        for (int i = 0; i < components.size(); i++)
+            components.get(i).upDate();
+    }
 
     @Override
     public void mailBox(Message _message) {
         try {
             if (_message.recipients.getSuperclass() != ComponentBase.class) {
                 if (_message.parameters != null) {
-                    _message.recipients.getDeclaredMethod(_message.message, _message.partypes).invoke(this, _message.parameters);
+                    _message.recipients.getMethod(_message.message, _message.partypes).invoke(this, _message.parameters);
                 } else {
-                     _message.recipients.getDeclaredMethod(_message.message).invoke(this);
+                     _message.recipients.getMethod(_message.message).invoke(this);
                 }
             } else {
                 for (int i = 0; i < components.size(); i++) {
-                    if (components.get(i).getClass() == _message.recipients) {
+                    if (components.get(i).getClass() == _message.recipients || components.get(i).getClass().getSuperclass() == _message.recipients) {
                         if (_message.parameters != null) {
-                            _message.recipients.getDeclaredMethod(_message.message, _message.partypes).invoke(_message.recipients.cast(components.get(i)), _message.parameters);
+                            _message.recipients.getMethod(_message.message, _message.partypes).invoke(_message.recipients.cast(components.get(i)), _message.parameters);
                         } else {
-                            _message.recipients.getDeclaredMethod(_message.message).invoke(_message.recipients.cast(components.get(i)));
+                            _message.recipients.getMethod(_message.message).invoke(_message.recipients.cast(components.get(i)));
                         }
                     }
                 }
@@ -73,14 +74,5 @@ class GameObject extends SocialMemder {
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             e.printStackTrace();
         }
-    }
-}
-
-class a {
-    public void b() {
-        GameObject object = GameObject.creat();
-        PositionComponent pcpt = PositionComponent.creat();
-        object.insertComponent(pcpt);
-        object.mailBox(Message.creat(GameObject.class, "upDate"));
     }
 }

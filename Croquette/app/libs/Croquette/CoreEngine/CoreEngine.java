@@ -2,42 +2,46 @@ package CoreEngine;
 
 import java.util.ArrayList;
 
+import javax.microedition.khronos.opengles.GL10;
+
+import Components.GameObject;
+import Social.Message;
+import Social.Type;
 
 public class CoreEngine {
     public ArrayList<ISystem> systems;
-    public  CoreEngine() throws InstantiationException, IllegalAccessException {}
-    public ISystem insertSystem(Class<? extends ISystem> _class) {
-        for (int i = 0; i < systems.size(); i++) {
-            if (systems.get(i).getClass() == _class) {
-                return null;
-            }
-        }
-        ISystem _system = null;
-        try {
-            _system = _class.newInstance();
-            _system.setOwner(this);
-        } catch (InstantiationException | IllegalAccessException e) {
-            e.printStackTrace();
-        }
-        systems.add(_system);
-        return _system;
+    public ArrayList<Message> messages;
+    public ArrayList<GameObject> objects;
+    public  CoreEngine() {
+        systems = new ArrayList<ISystem>();
+        messages = new ArrayList<Message>();
+        objects = new ArrayList<GameObject>();
     }
-    public Boolean insertSystem(ISystem _system) {
-        for (int i = 0; i < systems.size(); i++) {
-            if (systems.get(i).getClass() == _system.getClass()) {
-                return false;
-            }
-        }
-        _system.setOwner(this);
-        systems.add(_system);
-        return true;
+    public void mailBox(Message _message) { messages.add(_message); }
+    public void upDate(GL10 gl){
+        for (int i = 0; i < systems.size(); i++)
+            systems.get(i).upDate();
+        for (int i = 0; i < objects.size(); i++)
+            objects.get(i).upDate();
+        processingMessage();
     }
-    public ISystem getSystems(Class<? extends ISystem> _class) {
-        for (int i = 0; i < systems.size(); i++) {
-            if (systems.get(i).getClass() == _class) {
-                return systems.get(i);
+    public void processingMessage() {
+        for (int i = 0; i < messages.size(); i++){
+            if (messages.get(i).delayTime <= 0f) {
+                messages.get(i).delayTime -= 0.001f;
+            }else {
+                if(messages.get(i).recipients == Type.System) {
+                    for (int j = 0; j < systems.size(); j++) {
+                        systems.get(j).mailBox(messages.get(i));
+                    }
+                }else if(messages.get(i).recipients == Type.Object) {
+                    for (int j = 0; j < objects.size(); j++) {
+                        objects.get(j).mailBox(messages.get(i));
+                    }
+                }
+                messages.remove(i);
+                i--;
             }
         }
-        return null;
     }
 }

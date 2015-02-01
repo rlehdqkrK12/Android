@@ -1,12 +1,5 @@
 package Social;
 
-/*
-* class  example {
-*    public example() {
-*        Message.creat(PositionComponent.class, "upDate");
-*    }
-*/
-
 public class Message {
     public float delayTime;
     public Class recipients;
